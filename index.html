@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cozy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #b57edc;
+            --secondary-color: #d8b4fe;
+            --glow-color: rgba(181, 126, 220, 0.8);
+            --text-color: #ffffff;
+            --card-bg: rgba(0, 0, 0, 0.55);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        html, body { height: 100%; overflow: hidden; }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #0a0416;
+            color: var(--text-color);
+            position: relative;
+        }
+
+        /* ===== ANIMATED BACKGROUND ===== */
+        .bg-gradient {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(125deg,
+                #0a0416 0%, #1a0b2e 25%, #2d1b4e 50%, #4a2c7a 75%, #1a0b2e 100%);
+            background-size: 400% 400%;
+            animation: gradientMove 12s ease infinite;
+            z-index: 0;
+        }
+        @keyframes gradientMove {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.55;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .orb-1 { width: 400px; height: 400px; background: #b57edc; top: -100px; left: -100px; animation: float1 18s ease-in-out infinite; }
+        .orb-2 { width: 350px; height: 350px; background: #7b2cbf; bottom: -100px; right: -100px; animation: float2 22s ease-in-out infinite; }
+        .orb-3 { width: 300px; height: 300px; background: #d8b4fe; top: 50%; left: 50%; animation: float3 20s ease-in-out infinite; }
+        .orb-4 { width: 250px; height: 250px; background: #9d4edd; top: 10%; right: 10%; animation: float4 25s ease-in-out infinite; }
+
+        @keyframes float1 { 0%,100%{transform:translate(0,0)scale(1);} 50%{transform:translate(200px,150px)scale(1.3);} }
+        @keyframes float2 { 0%,100%{transform:translate(0,0)scale(1);} 50%{transform:translate(-250px,-180px)scale(1.2);} }
+        @keyframes float3 { 0%,100%{transform:translate(-50%,-50%)scale(1);} 33%{transform:translate(-30%,-70%)scale(1.4);} 66%{transform:translate(-70%,-30%)scale(0.9);} }
+        @keyframes float4 { 0%,100%{transform:translate(0,0)scale(1);} 50%{transform:translate(-150px,200px)scale(1.5);} }
+
+        .stars {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image:
+                radial-gradient(2px 2px at 20% 30%, #fff, transparent),
+                radial-gradient(2px 2px at 60% 70%, #d8b4fe, transparent),
+                radial-gradient(1px 1px at 50% 50%, #fff, transparent),
+                radial-gradient(2px 2px at 80% 10%, #b57edc, transparent),
+                radial-gradient(1px 1px at 90% 60%, #fff, transparent),
+                radial-gradient(1px 1px at 33% 80%, #d8b4fe, transparent),
+                radial-gradient(2px 2px at 10% 90%, #fff, transparent),
+                radial-gradient(1px 1px at 70% 40%, #b57edc, transparent);
+            background-size: 200% 200%;
+            z-index: 2;
+            pointer-events: none;
+            animation: twinkle 4s ease-in-out infinite, drift 60s linear infinite;
+            opacity: 0.7;
+        }
+        @keyframes twinkle { 0%,100%{opacity:0.3;} 50%{opacity:0.9;} }
+        @keyframes drift { 0%{background-position:0% 0%;} 100%{background-position:100% 100%;} }
+
+        /* ===== ENTER OVERLAY (for autoplay) ===== */
+        #enterOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 4, 22, 0.95);
+            backdrop-filter: blur(20px);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            cursor: pointer;
+            transition: opacity 0.8s ease;
+        }
+        #enterOverlay.hidden { opacity: 0; pointer-events: none; }
+
+        .enter-text {
+            font-size: 22px;
+            font-weight: 300;
+            letter-spacing: 4px;
+            color: var(--secondary-color);
+            text-transform: uppercase;
+            animation: textPulse 2s ease-in-out infinite;
+            text-shadow: 0 0 20px var(--primary-color);
+        }
+        @keyframes textPulse {
+            0%,100% { opacity: 0.5; }
+            50%     { opacity: 1; }
+        }
+        .enter-sub {
+            font-size: 12px;
+            color: #888;
+            letter-spacing: 2px;
+        }
+
+        /* ===== CONTAINER ===== */
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 620px;
+            z-index: 10;
+            position: relative;
+        }
+
+        /* ===== PROFILE CARD ===== */
+        .profile-card {
+            position: relative;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border: 2px solid var(--primary-color);
+            box-shadow: 0 0 20px var(--glow-color), inset 0 0 30px rgba(0,0,0,0.6);
+            animation: borderPulse 3s ease-in-out infinite alternate;
+        }
+        @keyframes borderPulse {
+            from { box-shadow: 0 0 15px rgba(181,126,220,0.5); border-color: var(--primary-color); }
+            to   { box-shadow: 0 0 35px rgba(216,180,254,1); border-color: var(--secondary-color); }
+        }
+
+        .avatar-container { position: relative; width: 100px; height: 100px; flex-shrink: 0; }
+
+        .avatar {
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #fff;
+            box-shadow: 0 0 15px var(--primary-color);
+            background-color: #333;
+            animation: avatarGlow 2.5s ease-in-out infinite alternate;
+        }
+        @keyframes avatarGlow {
+            from { box-shadow: 0 0 10px var(--primary-color); }
+            to   { box-shadow: 0 0 25px var(--secondary-color), 0 0 40px var(--primary-color); }
+        }
+
+        .status-icon {
+            position: absolute; bottom: 0; left: 0;
+            background: white; color: black;
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 14px;
+            border: 2px solid var(--primary-color);
+        }
+
+        .info { flex-grow: 1; }
+
+        .username {
+            font-size: 28px;
+            font-weight: 600;
+            color: #fff;
+            text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color);
+            margin-bottom: 5px;
+            font-style: italic;
+            animation: textGlow 2s ease-in-out infinite alternate;
+        }
+        @keyframes textGlow {
+            from { text-shadow: 0 0 8px var(--primary-color); }
+            to   { text-shadow: 0 0 15px var(--secondary-color), 0 0 25px var(--primary-color); }
+        }
+
+        .details { display: flex; gap: 15px; font-size: 12px; color: #ccc; }
+        .detail-item { display: flex; align-items: center; gap: 5px; }
+
+        .dot {
+            width: 8px; height: 8px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--primary-color);
+            animation: dotPulse 1.5s ease-in-out infinite;
+        }
+        @keyframes dotPulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.5;transform:scale(1.3);} }
+
+        .actions { display: flex; gap: 15px; padding-right: 10px; }
+        .action-btn {
+            background: none; border: none;
+            color: #fff; cursor: pointer;
+            font-size: 20px;
+            transition: 0.3s;
+        }
+        .action-btn:hover {
+            color: var(--primary-color);
+            text-shadow: 0 0 15px var(--primary-color);
+            transform: scale(1.2);
+        }
+
+        /* ===== MUSIC CARD ===== */
+        .music-card {
+            position: relative;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 2px solid var(--primary-color);
+            box-shadow: 0 0 20px var(--glow-color), inset 0 0 30px rgba(0,0,0,0.6);
+            animation: borderPulse 3s ease-in-out infinite alternate-reverse;
+        }
+
+        .album-art {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #fff;
+            box-shadow: 0 0 10px var(--primary-color);
+        }
+        .album-art.spinning { animation: spin 6s linear infinite; }
+        @keyframes spin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+
+        .controls { display: flex; align-items: center; gap: 15px; margin-left: 15px; }
+
+        .play-btn {
+            background: var(--primary-color);
+            color: #fff;
+            width: 35px; height: 35px;
+            border-radius: 50%;
+            border: none;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer;
+            box-shadow: 0 0 15px var(--primary-color);
+            transition: 0.3s;
+            font-size: 12px;
+            animation: playPulse 2s ease-in-out infinite;
+        }
+        @keyframes playPulse {
+            0%,100% { box-shadow: 0 0 10px var(--primary-color); }
+            50%     { box-shadow: 0 0 25px var(--secondary-color); }
+        }
+        .play-btn:hover { transform: scale(1.15); }
+
+        .control-icon { color: #ddd; font-size: 12px; cursor: pointer; transition: 0.3s; }
+        .control-icon:hover { color: var(--primary-color); }
+
+        .progress-container {
+            flex-grow: 1;
+            margin: 0 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 10px;
+            color: #aaa;
+        }
+
+        .progress-bar {
+            flex-grow: 1;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .progress-fill {
+            position: absolute;
+            left: 0; top: 0;
+            height: 100%;
+            width: 0%;
+            background: var(--primary-color);
+            box-shadow: 0 0 10px var(--primary-color);
+            transition: width 0.1s linear;
+        }
+
+        .lyrics {
+            width: 180px;
+            text-align: right;
+            font-size: 11px;
+            font-style: italic;
+            color: var(--primary-color);
+            line-height: 1.4;
+            text-shadow: 0 0 5px rgba(181,126,220,0.6);
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .icon-heart::before   { content: "🤍"; }
+        .icon-comment::before { content: "💬"; }
+        .icon-prev::before    { content: "◀"; }
+        .icon-next::before    { content: "▶"; }
+    </style>
+</head>
+<body>
+
+    <!-- ===== ENTER OVERLAY (enables autoplay) ===== -->
+    <div id="enterOverlay">
+        <div class="enter-text">Click to Enter</div>
+        <div class="enter-sub">♫ music will play</div>
+    </div>
+
+    <!-- ===== ANIMATED BACKGROUND ===== -->
+    <div class="bg-gradient"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="orb orb-4"></div>
+    <div class="stars"></div>
+
+    <!-- 🎵 REPLACE WITH YOUR SONG URL -->
+    <audio id="mySong" src="song.mp3" loop></audio>
+
+    <div class="container">
+
+        <!-- PROFILE CARD -->
+        <div class="profile-card">
+            <div class="avatar-container">
+                <!-- 🖼️ REPLACE WITH YOUR PFP URL -->
+                <img src="pfp.png"
+                     alt="Profile"
+                     class="avatar"
+                     onerror="this.src='https://placehold.co/100x100/2d1b4e/b57edc?text=PFP'">
+                <div class="status-icon">!</div>
+            </div>
+
+            <div class="info">
+                <div class="username">cozy</div>
+                <div class="details">
+                    <div class="detail-item"><span class="dot"></span> 0</div>
+                    <div class="detail-item"><span class="dot"></span> United Kingdom</div>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="action-btn icon-heart"></button>
+                <button class="action-btn icon-comment"></button>
+            </div>
+        </div>
+
+        <!-- MUSIC CARD -->
+        <div class="music-card">
+            <!-- 🖼️ REPLACE WITH YOUR ALBUM ART URL -->
+            <img src="YOUR_ALBUM_ART_URL"
+                 alt="Album Art"
+                 class="album-art"
+                 id="albumArt"
+                 onerror="this.src='https://placehold.co/50x50/1a0b2e/b57edc?text=Art'">
+
+            <div class="controls">
+                <span class="control-icon icon-prev" onclick="rewind()"></span>
+                <button class="play-btn" id="playBtn">▶</button>
+                <span class="control-icon icon-next" onclick="forward()"></span>
+            </div>
+
+            <div class="progress-container">
+                <span id="currentTime">0:00</span>
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <span id="duration">0:00</span>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        const song = document.getElementById('mySong');
+        const playBtn = document.getElementById('playBtn');
+        const progressFill = document.getElementById('progressFill');
+        const progressBar = document.getElementById('progressBar');
+        const currentTimeEl = document.getElementById('currentTime');
+        const durationEl = document.getElementById('duration');
+        const albumArt = document.getElementById('albumArt');
+        const overlay = document.getElementById('enterOverlay');
+
+        // Format time
+        function formatTime(sec) {
+            if (isNaN(sec)) return "0:00";
+            const m = Math.floor(sec / 60);
+            const s = Math.floor(sec % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        // ENTER OVERLAY → plays song & fades out
+        overlay.addEventListener('click', () => {
+            overlay.classList.add('hidden');
+            song.volume = 0.7;
+            song.play().then(() => {
+                playBtn.textContent = "❚❚";
+                albumArt.classList.add('spinning');
+            }).catch(err => {
+                console.warn("Playback failed:", err);
+                playBtn.textContent = "▶";
+            });
+        });
+
+        // Play / Pause toggle
+        playBtn.addEventListener('click', () => {
+            if (song.paused) {
+                song.play().catch(() => alert("⚠️ Song failed to load. Check the audio URL."));
+                playBtn.textContent = "❚❚";
+                albumArt.classList.add('spinning');
+            } else {
+                song.pause();
+                playBtn.textContent = "▶";
+                albumArt.classList.remove('spinning');
+            }
+        });
+
+        // Progress updates
+        song.addEventListener('timeupdate', () => {
+            const percent = (song.currentTime / song.duration) * 100;
+            progressFill.style.width = percent + "%";
+            currentTimeEl.textContent = formatTime(song.currentTime);
+        });
+
+        song.addEventListener('loadedmetadata', () => {
+            durationEl.textContent = formatTime(song.duration);
+        });
+
+        // Click bar to seek
+        progressBar.addEventListener('click', (e) => {
+            const rect = progressBar.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const percent = clickX / rect.width;
+            song.currentTime = percent * song.duration;
+        });
+
+        function rewind() { song.currentTime = Math.max(0, song.currentTime - 10); }
+        function forward() { song.currentTime = Math.min(song.duration, song.currentTime + 10); }
+
+        song.addEventListener('ended', () => {
+            playBtn.textContent = "▶";
+            albumArt.classList.remove('spinning');
+            progressFill.style.width = "0%";
+        });
+    </script>
+
+</body>
+</html>
